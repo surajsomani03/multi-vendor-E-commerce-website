@@ -6,6 +6,7 @@ const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const Product = require("../model/product");
+const { assignCouponToUser } = require("../utils/CouponGenerate");
 
 // create new order
 router.post(
@@ -39,10 +40,17 @@ router.post(
         orders.push(order);
       }
 
+      console.log(`Order created for user ID: ${user._id}`);
+      let userId = user._id;
+      
+      // Assign coupon to user based on total price
+      await assignCouponToUser(totalPrice, userId);
+
       res.status(201).json({
         success: true,
         orders,
       });
+
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
@@ -111,7 +119,7 @@ router.put(
       if (req.body.status === "Delivered") {
         order.deliveredAt = Date.now();
         order.paymentInfo.status = "Succeeded";
-        const serviceCharge = order.totalPrice * .10;
+        const serviceCharge = order.totalPrice * 0.1;
         await updateSellerInfo(order.totalPrice - serviceCharge);
       }
 
@@ -133,7 +141,7 @@ router.put(
 
       async function updateSellerInfo(amount) {
         const seller = await Shop.findById(req.seller.id);
-        
+
         seller.availableBalance = amount;
 
         await seller.save();
