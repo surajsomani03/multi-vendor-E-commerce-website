@@ -7,101 +7,131 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const sendMail = require("../utils/sendMail");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const ReferralCode = require("../model/referralCode");
+const { generateReferralCode } = require("../utils/ReferralCodeGenerate");
+const referralController = require("./referralController");
 
 router.post("/create-user", upload.single("file"), async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
-    const userEmail = await User.findOne({ email });
+    const { name, email, password, phoneNumber, panCard, gender, inputReferralCode } = req.body;
 
-    if (userEmail) {
+    // Check for required fields
+    if (!name || !password || !phoneNumber || !panCard || !gender) {
+      if (req.file) {
+        const filename = req.file.filename;
+        const filePath = `uploads/${filename}`;
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
+      return next(new ErrorHandler("Please provide all required fields!", 400));
+    }
+
+    // Verify referral code if provided
+    let referrerDetails = null;
+    if (inputReferralCode) {
+      referrerDetails = await referralController.verifyReferralCode(inputReferralCode);
+      if (!referrerDetails) {
+        return next(new ErrorHandler("Invalid referral code!", 400));
+      }
+    }
+
+    // Generate new referral code for the registering user
+    const newUserReferralCode = await generateReferralCode(name);
+
+    // Check if user exists with same email (if provided)
+    if (email) {
+      const userEmail = await User.findOne({ email });
+      if (userEmail) {
+        if (req.file) {
+          const filename = req.file.filename;
+          const filePath = `uploads/${filename}`;
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.log(err);
+            }
+          });
+        }
+        return next(new ErrorHandler("Email already exists", 400));
+      }
+    }
+
+    // Check if PAN card already exists
+    const existingPanCard = await User.findOne({ panCard: panCard.toUpperCase() });
+    if (existingPanCard) {
+      if (req.file) {
+        const filename = req.file.filename;
+        const filePath = `uploads/${filename}`;
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
+      return next(new ErrorHandler("PAN card already registered", 400));
+    }
+
+    // Set default avatar if no file is uploaded
+    let fileUrl = "defaultAvatar.png";
+    if (req.file) {
+      fileUrl = path.join(req.file.filename);
+    }
+
+    // Create user with referral information
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phoneNumber,
+      panCard,
+      gender,
+      avatar: fileUrl,
+      referralCode: newUserReferralCode,
+      referredBy: referrerDetails ? referrerDetails.referrerId : null
+    });
+
+    // Create referral code document
+    await ReferralCode.create({
+      code: newUserReferralCode,
+      userId: user._id,
+      userName: user.name
+    });
+
+    // Update referral usage if referral code was used
+    if (referrerDetails) {
+      await referralController.updateReferralUsage(inputReferralCode, user._id, user.name);
+    }
+
+    // Add referrer details to response
+    const responseData = {
+      success: true,
+      user,
+      referrer: referrerDetails ? {
+        name: referrerDetails.referrerName,
+        referralCode: referrerDetails.referralCode
+      } : null
+    };
+
+    sendToken(user, 201, res, responseData);
+
+  } catch (error) {
+    // If any error occurs and file was uploaded, delete it
+    if (req.file) {
       const filename = req.file.filename;
       const filePath = `uploads/${filename}`;
       fs.unlink(filePath, (err) => {
         if (err) {
           console.log(err);
-          res.status(500).json({ message: "Error deleting file" });
         }
       });
-      return next(new ErrorHandler("User already exists", 400));
     }
-
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
-
-    const user = {
-      name: name,
-      email: email,
-      password: password,
-      avatar: fileUrl,
-    };
-
-    const activationToken = createActivationToken(user);
-
-    const activationUrl = `http://localhost:3000/activation/${activationToken}`;
-
-    try {
-      await sendMail({
-        email: user.email,
-        subject: "Activate your account",
-        message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
-      });
-      res.status(201).json({
-        success: true,
-        message: `please check your email:- ${user.email} to activate your account!`,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  } catch (error) {
     return next(new ErrorHandler(error.message, 400));
   }
 });
-
-// create activation token
-const createActivationToken = (user) => {
-  return jwt.sign(user, process.env.ACTIVATION_SECRET, {
-    expiresIn: "5m",
-  });
-};
-
-// activate user
-router.post(
-  "/activation",
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { activation_token } = req.body;
-
-      const newUser = jwt.verify(
-        activation_token,
-        process.env.ACTIVATION_SECRET
-      );
-
-      if (!newUser) {
-        return next(new ErrorHandler("Invalid token", 400));
-      }
-      const { name, email, password, avatar } = newUser;
-
-      let user = await User.findOne({ email });
-
-      if (user) {
-        return next(new ErrorHandler("User already exists", 400));
-      }
-      user = await User.create({
-        name,
-        email,
-        avatar,
-        password,
-      });
-
-      sendToken(user, 201, res);
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
 
 // login user
 router.post(
@@ -408,5 +438,47 @@ router.delete(
     }
   })
 );
+
+// Add a new route to apply referral code
+router.post("/apply-referral", catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { referralCode, userId } = req.body;
+
+    const referral = await ReferralCode.findOne({ code: referralCode });
+    if (!referral) {
+      return next(new ErrorHandler("Invalid referral code", 400));
+    }
+
+    // Check if user is trying to use their own referral code
+    if (referral.userId.toString() === userId) {
+      return next(new ErrorHandler("Cannot use your own referral code", 400));
+    }
+
+    // Get user details
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 400));
+    }
+
+    if (user.referredBy) {
+      return next(new ErrorHandler("You have already used a referral code", 400));
+    }
+
+    // Update user with referral information
+    user.referredBy = referral.userId;
+    await user.save();
+
+    // Use the referralController to update usage
+    await referralController.updateReferralUsage(referralCode, userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Referral code applied successfully"
+    });
+
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+}));
 
 module.exports = router;

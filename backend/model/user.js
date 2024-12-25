@@ -7,19 +7,74 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter your name!"],
   },
+  gender: {
+    type: String,
+    required: [true, "Please specify your gender!"],
+    enum: {
+      values: ['male', 'female', 'other'],
+      message: "Please select a valid gender option!"
+    }
+  },
+  phoneNumber: {
+    type: Number,
+    required: [true, "Please enter your phone number!"],
+    unique: false,
+    validate: {
+      validator: async function(phone) {
+        const phoneStr = phone.toString();
+        if (phoneStr.length !== 10) {
+          return false;
+        }
+        
+        const count = await mongoose.models.User.countDocuments({ phoneNumber: phone });
+        return count < 2;
+      },
+      message: props => 
+        props.value.toString().length !== 10 
+          ? "Phone number must be exactly 10 digits!"
+          : "This phone number has already been used for maximum allowed accounts!"
+    }
+  },
   email: {
     type: String,
-    required: [true, "Please enter your email!"],
+    unique: true,
+    sparse: true,
+    validate: {
+      validator: function(email) {
+        if (email) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return emailRegex.test(email);
+        }
+        return true;
+      },
+      message: "Please enter a valid email address!"
+    }
+  },
+  panCard: {
+    type: String,
+    required: [true, "Please enter your PAN card number!"],
+    unique: true,
+    validate: {
+      validator: function(pan) {
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        return panRegex.test(pan);
+      },
+      message: "Please enter a valid PAN card number!"
+    }
   },
   password: {
     type: String,
     required: [true, "Please enter your password"],
-    minLength: [4, "Password should be greater than 4 characters"],
+    validate: {
+      validator: function(password) {
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+        return passwordRegex.test(password);
+      },
+      message: "Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 number, and 1 special character!"
+    },
     select: false,
   },
-  phoneNumber: {
-    type: Number,
-  },
+  
   addresses: [
     {
       country: {
@@ -48,7 +103,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    required: true,
+    // required: true,
   },
   createdAt: {
     type: Date,
@@ -57,7 +112,6 @@ const userSchema = new mongoose.Schema({
   resetPasswordToken: String,
   resetPasswordTime: Date,
   
-  // New field for tracking assigned coupons
   coupons: [
     {
       couponId: {
@@ -70,15 +124,38 @@ const userSchema = new mongoose.Schema({
       },
     },
   ],
+  referralCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
 });
 
-// Hash password before saving
+// Hash password before saving and validate its format
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next();
+  }
+
+  // Additional password validation before hashing
+  const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+  if (!passwordRegex.test(this.password)) {
+    throw new Error("Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 number, and 1 special character!");
   }
 
   this.password = await bcrypt.hash(this.password, 10);
+});
+
+// Convert PAN card to uppercase before saving
+userSchema.pre("save", function(next) {
+  if (this.panCard) {
+    this.panCard = this.panCard.toUpperCase();
+  }
+  next();
 });
 
 // Generate JWT token

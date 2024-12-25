@@ -32,7 +32,7 @@ const generateCouponName = (suffix = "") => {
       try {
         for (let i = 0; i < couponCount; i++) {
           // Generate a unique coupon name for each coupon
-          const couponName = generateCouponName(`-${i+1}`);
+          const couponName = generateCouponName();
   
           // Create a new coupon entry with the generated name
           const newCoupon = await CoupounCode.create({
