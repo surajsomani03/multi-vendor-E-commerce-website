@@ -123,11 +123,19 @@ calculateLevelEarnings = async (userId, purchaseAmount) => {
   try {
     // Define commission percentages for each level
     const levelCommissions = {
-      1: 0.1, // 10% for level 1
-      2: 0.07, // 7% for level 2
-      3: 0.05, // 5% for level 3
-      4: 0.03, // 3% for level 4
-      5: 0.02, // 2% for level 5
+      1: 0.08, // 8% for level 1
+      2: 0.03, // 3% for level 2
+      3: 0.02, // 2% for level 3
+      4: 0.01, // 1% for level 4
+      5: 0.01, // 1% for level 5
+      6: 0.005, // 0.50% for level 6
+      7: 0.005, //  0.50% for level 7
+      8: 0.005, //  0.50% for level 8
+      9: 0.005, //  0.50% for level 9
+      10: 0.0025, // 0.25% for level 10
+      11: 0.0025, // 0.25% for level 11
+      12: 0.0025, // 0.25% for level 12
+      13: 0.0025, // 0.25% for level 13
       // Add more levels as needed (up to 13)
     };
 
@@ -144,8 +152,7 @@ calculateLevelEarnings = async (userId, purchaseAmount) => {
       if (!referralCode) break;
 
       // Calculate commission for this level
-      const commission =
-        purchaseAmount * (levelCommissions[currentLevel] || 0.01); // Default 1% for levels 6-13
+      const commission = purchaseAmount * levelCommissions[currentLevel];
 
       // Update earnings for this level
       const currentLevelEarnings =
@@ -170,7 +177,7 @@ calculateLevelEarnings = async (userId, purchaseAmount) => {
 async function addReferralAtLevel(referralCode, userId, userName, level) {
   // Check if user is already referred at this level
   const existingReferral = referralCode.usedBy.find(
-    ref => ref.userId.toString() === userId.toString() && ref.level === level
+    (ref) => ref.userId.toString() === userId.toString() && ref.level === level
   );
 
   if (!existingReferral) {
@@ -178,7 +185,7 @@ async function addReferralAtLevel(referralCode, userId, userName, level) {
       userId,
       userName,
       level,
-      referredAt: new Date()
+      referredAt: new Date(),
     });
     await referralCode.save();
   }
@@ -190,5 +197,5 @@ module.exports = {
   updateReferralUsage,
   getReferralTree,
   calculateLevelEarnings,
-  addReferralAtLevel
+  addReferralAtLevel,
 };
