@@ -22,8 +22,7 @@ connectDatabase();
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://dp-frontend-neocreatyve.vercel.app', // Add your frontend Vercel URL
-    'https://dp-frontend-neocreatyve-gmailcoms-projects.vercel.app' // Add any other frontend URLs
+    'https://dp-frontend-rosy.vercel.app/'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
