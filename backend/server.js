@@ -22,27 +22,13 @@ connectDatabase();
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://dp-frontend-rosy.vercel.app/'
+    'https://dp-frontend-rosy.vercel.app',
+    'https://dp-frontend-rosy.vercel.app/',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-header']
 }));
-
-// Add this before your routes if CORS errors persist
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Credentials', true);
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-    return res.status(200).json({});
-  }
-  next();
-});
 
 // create server
 const server = app.listen(process.env.PORT, () => {
@@ -59,4 +45,8 @@ process.on("unhandledRejection", (err) => {
   server.close(() => {
     process.exit(1);
   });
+});
+
+app.get('/api/v2/health', (req, res) => {
+  res.json({ status: 'ok' });
 });

@@ -5,7 +5,7 @@ export const server = process.env.NODE_ENV === 'production'
     : "http://localhost:8000/api/v2";
 
 export const backend_url = process.env.NODE_ENV === 'production'
-    ? "https://dp-backend-kappa.vercel.app/"
+    ? "https://dp-backend-kappa.vercel.app"
     : "http://localhost:8000";
 
 
