@@ -23,6 +23,8 @@ import { useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { getAllOrdersOfUser } from "../../redux/actions/order";
+import { RiWallet3Line } from "react-icons/ri";
+import MyTeam from './MyTeam';
 
 const ProfileContent = ({ active }) => {
   const { user, error, successMessage } = useSelector((state) => state.user);
@@ -101,6 +103,82 @@ const ProfileContent = ({ active }) => {
           <br />
           <br />
           <div className="w-full px-5">
+            {/* <div className="flex justify-between w-full items-center">
+              <h1 className="text-[25px] font-[600] text-[#000000ba] pb-2">Profile Information</h1>
+            </div>
+            <div className="w-full grid grid-cols-1 gap-[20px] md:grid-cols-2">
+              <div className="w-full">
+                <label className="block pb-2">Full Name</label>
+                <input 
+                  type="text" 
+                  className={`${styles.input} !w-[95%]`}
+                  required
+                  value={user?.name}
+                  disabled
+                />
+              </div>
+              <div className="w-full">
+                <label className="block pb-2">Email Address</label>
+                <input 
+                  type="text" 
+                  className={`${styles.input} !w-[95%]`}
+                  required
+                  value={user?.email}
+                  disabled
+                />
+              </div>
+
+              <div className="w-full">
+                <label className="block pb-2">Phone Number</label>
+                <input 
+                  type="text" 
+                  className={`${styles.input} !w-[95%]`}
+                  required
+                  value={user?.phoneNumber || "Not provided"}
+                  disabled
+                />
+              </div>
+              <div className="w-full">
+                <label className="block pb-2">PAN Card</label>
+                <input 
+                  type="text" 
+                  className={`${styles.input} !w-[95%]`}
+                  required
+                  value={user?.panCard || "Not provided"}
+                  disabled
+                />
+              </div>
+              <div className="w-full">
+                <label className="block pb-2">Gender</label>
+                <input 
+                  type="text" 
+                  className={`${styles.input} !w-[95%]`}
+                  required
+                  value={user?.gender || "Not provided"}
+                  disabled
+                />
+              </div>
+              <div className="w-full">
+                <label className="block pb-2">Your Referral Code</label>
+                <input 
+                  type="text" 
+                  className={`${styles.input} !w-[95%]`}
+                  required
+                  value={user?.referralCode || "Not available"}
+                  disabled
+                />
+              </div>
+              <div className="w-full">
+                <label className="block pb-2">Referred By</label>
+                <input 
+                  type="text" 
+                  className={`${styles.input} !w-[95%]`}
+                  required
+                  value={user?.referredBy?.name || "Not referred"}
+                  disabled
+                />
+              </div>
+            </div> */}
             <form onSubmit={handleSubmit} aria-required={true}>
               <div className="w-full 800px:flex block pb-3">
                 <div className=" w-[100%] 800px:w-[50%]">
@@ -191,6 +269,20 @@ const ProfileContent = ({ active }) => {
       {active === 7 && (
         <div>
           <Address />
+        </div>
+      )}
+
+      {/* Wallet */}
+      {active === 8 && (
+        <div>
+          <Wallet />
+        </div>
+      )}
+
+      {/* My Team */}
+      {active === 10 && (
+        <div>
+          <MyTeam />
         </div>
       )}
     </div>
@@ -773,4 +865,102 @@ const Address = () => {
     </div>
   );
 };
+
+const Wallet = () => {
+  const { user } = useSelector((state) => state.user);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+
+  const handleWithdraw = () => {
+    // Implement withdrawal logic here
+    toast.info("Withdrawal functionality coming soon!");
+  };
+
+  return (
+    <div className="w-full px-5">
+      {/* Wallet Balance Section */}
+      <div className="w-full bg-white h-[230px] rounded-[8px] shadow p-8 mb-8">
+        <div className="flex items-center gap-2 mb-6">
+          <RiWallet3Line size={35} className="text-[#3321c8]" />
+          <h1 className="text-[25px] font-[600] text-[#000000ba]">
+            Wallet Balance
+          </h1>
+        </div>
+        <h3 className="text-[35px] font-[500] text-[#3321c8] pb-4">
+          ₹{user?.wallet?.balance || "0.00"}
+        </h3>
+        <button
+          className="bg-[#3321c8] text-white px-6 py-2 rounded-md hover:bg-[#2715a7]"
+          onClick={handleWithdraw}
+        >
+          Withdraw
+        </button>
+      </div>
+
+      {/* Transaction History Section */}
+      <div className="w-full bg-white rounded-[8px] shadow p-8">
+        <h2 className="text-[20px] font-[600] text-[#000000ba] pb-4">
+          Transaction History
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-3">Date</th>
+                <th className="text-left py-3">Type</th>
+                <th className="text-left py-3">Description</th>
+                <th className="text-right py-3">Amount</th>
+                <th className="text-right py-3">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {user?.wallet?.transactions?.length > 0 ? (
+                user.wallet.transactions.map((transaction, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="py-3">
+                      {new Date(transaction.date).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                      <div className="text-[12px] text-gray-500">
+                        {new Date(transaction.date).toLocaleTimeString("en-IN")}
+                      </div>
+                    </td>
+                    <td className="py-3">
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          transaction.type === "credit"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {transaction.type}
+                      </span>
+                    </td>
+                    <td className="py-3">{transaction.description}</td>
+                    <td className={`py-3 text-right ${
+                      transaction.type === "credit" 
+                        ? "text-green-600" 
+                        : "text-red-600"
+                    }`}>
+                      {transaction.type === "credit" ? "+" : "-"}₹{transaction.amount}
+                    </td>
+                    <td className="py-3 text-right">₹{transaction.balance}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-gray-500">
+                    No transactions found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default ProfileContent;

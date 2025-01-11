@@ -7,17 +7,19 @@ import FeaturedProduct from "../components/Route/FeaturedProduct/FeaturedProduct
 import Events from "../components/Events/Events";
 import Sponsored from "../components/Route/Sponsored";
 import Footer from "../components/Layout/Footer";
+import PrizeBonanza from '../components/PrizeBonanza/PrizeBonanza';
 
 const HomePage = () => {
   return (
     <div>
+        
         <Header activeHeading={1} />
-        <Hero />
+        <PrizeBonanza />
         <Categories />
         <BestDeals />
-        <Events />
+        {/* <Events /> */}
         <FeaturedProduct />
-        <Sponsored />
+        {/* <Sponsored /> */}
         <Footer />
     </div>
   )

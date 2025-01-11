@@ -1,6 +1,6 @@
 import React from "react";
 import { AiOutlineLogin, AiOutlineMessage } from "react-icons/ai";
-import { RiLockPasswordLine } from "react-icons/ri";
+import { RiLockPasswordLine, RiWallet3Line } from "react-icons/ri";
 import { HiOutlineReceiptRefund, HiOutlineShoppingBag } from "react-icons/hi";
 import {
   MdOutlineAdminPanelSettings,
@@ -14,6 +14,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { FiUserPlus } from 'react-icons/fi';
 
 const ProfileSidebar = ({ setActive, active }) => {
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ const ProfileSidebar = ({ setActive, active }) => {
         </span>
       </div>
 
-      <div
+      {/* <div
         className="flex items-center cursor-pointer w-full mb-8"
         onClick={() => setActive(4) || navigate("/inbox")}
       >
@@ -84,7 +85,7 @@ const ProfileSidebar = ({ setActive, active }) => {
         >
           Inbox
         </span>
-      </div>
+      </div> */}
 
       <div
         className="flex items-center cursor-pointer w-full mb-8"
@@ -128,6 +129,20 @@ const ProfileSidebar = ({ setActive, active }) => {
         </span>
       </div>
 
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(8)}
+      >
+        <RiWallet3Line size={20} color={active === 8 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 8 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Wallet
+        </span>
+      </div>
+
       {user && user?.role === "Admin" && (
         <Link to="/admin/dashboard">
           <div
@@ -148,14 +163,29 @@ const ProfileSidebar = ({ setActive, active }) => {
           </div>
         </Link>
       )}
+
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(10)}
+      >
+        <FiUserPlus size={20} color={active === 10 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 10 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          My Team
+        </span>
+      </div>
+
       <div
         className="single_item flex items-center cursor-pointer w-full mb-8"
         onClick={logoutHandler}
       >
-        <AiOutlineLogin size={20} color={active === 8 ? "red" : ""} />
+        <AiOutlineLogin size={20} color={active === 9 ? "red" : ""} />
         <span
           className={`pl-3 ${
-            active === 8 ? "text-[red]" : ""
+            active === 9 ? "text-[red]" : ""
           } 800px:block hidden`}
         >
           Log out
