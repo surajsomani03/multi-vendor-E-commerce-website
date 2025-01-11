@@ -1,15 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-const app = express();
+const app = require("./app");
 const connectDatabase = require("./db/Database");
-
-// CORS configuration for Vercel
-app.use(cors({
-    origin: ['https://dp-frontend-neocreatyve-gmailcoms-projects.vercel.app', 'http://localhost:3000'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+const cors = require("cors");
 
 // Handling uncaught Exception
 process.on("uncaughtException", (err) => {
@@ -27,6 +18,33 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 // connect db
 connectDatabase();
 
+// Add cors configuration before other middleware
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://dp-frontend-neocreatyve.vercel.app', // Add your frontend Vercel URL
+    'https://dp-frontend-neocreatyve-gmailcoms-projects.vercel.app' // Add any other frontend URLs
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-header']
+}));
+
+// Add this before your routes if CORS errors persist
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+    return res.status(200).json({});
+  }
+  next();
+});
+
 // create server
 const server = app.listen(process.env.PORT, () => {
   console.log(
@@ -43,21 +61,3 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   });
 });
-
-// Update your exports for Vercel
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(5000, () => console.log('Server running on port 5000'));
-}
-
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://dp-frontend-neocreatyve-gmailcoms-projects.vercel.app');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', true);
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-    next();
-});
-
-module.exports = app;
