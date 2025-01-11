@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const referralCodeSchema = new mongoose.Schema({
   code: {
     type: String,
-    unique: true,
     required: true,
+    unique: true,
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -15,29 +15,28 @@ const referralCodeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  usageCount: {
-    type: Number,
-    default: 0,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  // Updated usedBy array to include user name
   usedBy: [{
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
     },
-    userName: {
-      type: String,
-      required: true
-    },
-    usedAt: {
+    userName: String,
+    level: Number,
+    referredAt: {
       type: Date,
       default: Date.now
     }
-  }]
-});
+  }],
+  // Track earnings per level
+  levelEarnings: {
+    type: Map,
+    of: Number,
+    default: new Map()
+  },
+  totalEarnings: {
+    type: Number,
+    default: 0
+  }
+}, { timestamps: true });
 
 module.exports = mongoose.model("ReferralCode", referralCodeSchema); 

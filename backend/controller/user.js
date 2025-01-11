@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const ReferralCode = require("../model/referralCode");
-const { generateReferralCode } = require("../utils/ReferralCodeGenerate");
+const { generateReferralCode, verifyReferralCode, updateReferralUsage } = require("../utils/ReferralCodeGenerate");
 const referralController = require("./referralController");
 
 router.post("/create-user", upload.single("file"), async (req, res, next) => {
@@ -34,7 +34,7 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
     // Verify referral code if provided
     let referrerDetails = null;
     if (inputReferralCode) {
-      referrerDetails = await referralController.verifyReferralCode(inputReferralCode);
+      referrerDetails = await verifyReferralCode(inputReferralCode);
       if (!referrerDetails) {
         return next(new ErrorHandler("Invalid referral code!", 400));
       }
@@ -103,7 +103,7 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
 
     // Update referral usage if referral code was used
     if (referrerDetails) {
-      await referralController.updateReferralUsage(inputReferralCode, user._id, user.name);
+      await updateReferralUsage(inputReferralCode, user._id, user.name);
     }
 
     // Add referrer details to response
@@ -469,7 +469,7 @@ router.post("/apply-referral", catchAsyncErrors(async (req, res, next) => {
     await user.save();
 
     // Use the referralController to update usage
-    await referralController.updateReferralUsage(referralCode, userId);
+    await updateReferralUsage(referralCode, userId);
 
     res.status(200).json({
       success: true,
