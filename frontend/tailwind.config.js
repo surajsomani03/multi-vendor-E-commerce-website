@@ -2,6 +2,7 @@
 module.exports = {
   content: ["./src/**/*.{html,js,jsx}"],
   mode: "jit",
+  darkMode: 'class',
   theme: {
     fontFamily: {
       Roboto: ["Roboto", "sans-serif"],
@@ -15,6 +16,11 @@ module.exports = {
         "1300px": "1300px",
         "400px":"400px"
       },
+      colors: {
+        'dark-bg': '#1a1c23',
+        'dark-secondary': '#242631',
+        'dark-text': '#a0aec0',
+      }
     },
   },
   plugins: [],

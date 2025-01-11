@@ -17,6 +17,8 @@ import { backend_url } from "../../server";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
+import Logo from '../../Assests/Logo.svg'
+
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -59,7 +61,7 @@ const Header = ({ activeHeading }) => {
           <div>
             <Link to="/">
               <img
-                src="https://shopo.quomodothemes.website/assets/images/logo.svg"
+                src={Logo}
                 alt=""
               />
             </Link>
@@ -98,14 +100,16 @@ const Header = ({ activeHeading }) => {
             ) : null}
           </div>
 
-          <div className={`${styles.button}`}>
-            <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
-              <h1 className="text-[#fff] flex items-center">
-                {isSeller ? "Go Dashboard" : "Become Seller"}{" "}
-                <IoIosArrowForward className="ml-1" />
-              </h1>
-            </Link>
-          </div>
+          {!isAuthenticated && (
+            <div className={`${styles.button}`}>
+              <Link to="/sign-up">
+                <h1 className="text-[#fff] flex items-center">
+                  Register Now
+                  <IoIosArrowForward className="ml-1" />
+                </h1>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
       <div
@@ -218,7 +222,7 @@ const Header = ({ activeHeading }) => {
           <div>
             <Link to="/">
               <img
-                src="https://shopo.quomodothemes.website/assets/images/logo.svg"
+                src={Logo}
                 alt=""
                 className="mt-3 cursor-pointer"
               />
@@ -299,13 +303,15 @@ const Header = ({ activeHeading }) => {
               </div>
 
               <Navbar active={activeHeading} />
-              <div className={`${styles.button} ml-4 !rounded-[4px]`}>
-                <Link to="/shop-create">
-                  <h1 className="text-[#fff] flex items-center">
-                    Become Seller <IoIosArrowForward className="ml-1" />
-                  </h1>
-                </Link>
-              </div>
+              {!isAuthenticated && (
+                <div className={`${styles.button} ml-4 !rounded-[4px]`}>
+                  <Link to="/sign-up">
+                    <h1 className="text-[#fff] flex items-center">
+                      Register Now <IoIosArrowForward className="ml-1" />
+                    </h1>
+                  </Link>
+                </div>
+              )}
               <br />
               <br />
               <br />

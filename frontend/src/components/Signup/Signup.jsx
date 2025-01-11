@@ -13,6 +13,10 @@ const Singup = () => {
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const [avatar, setAvatar] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [panCard, setPanCard] = useState("");
+  const [gender, setGender] = useState("");
+  const [inputReferralCode, setInputReferralCode] = useState("");
 
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
@@ -29,6 +33,10 @@ const Singup = () => {
     newForm.append("name", name);
     newForm.append("email", email);
     newForm.append("password", password);
+    newForm.append("phoneNumber", phoneNumber);
+    newForm.append("panCard", panCard);
+    newForm.append("gender", gender);
+    newForm.append("inputReferralCode", inputReferralCode);
 
     axios
       .post(`${server}/user/create-user`, newForm, config)
@@ -37,6 +45,10 @@ const Singup = () => {
         setName("");
         setEmail("");
         setPassword("");
+        setPhoneNumber("");
+        setPanCard("");
+        setGender("");
+        setInputReferralCode("");
         setAvatar();
       })
       .catch((error) => {
@@ -124,6 +136,85 @@ const Singup = () => {
                     onClick={() => setVisible(true)}
                   />
                 )}
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="phoneNumber"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Phone Number
+              </label>
+              <div className="mt-1">
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="panCard"
+                className="block text-sm font-medium text-gray-700"
+              >
+                PAN Card Number
+              </label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  name="panCard"
+                  required
+                  value={panCard}
+                  onChange={(e) => setPanCard(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="gender"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Gender
+              </label>
+              <div className="mt-1">
+                <select
+                  name="gender"
+                  required
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="inputReferralCode"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Referral Code (Optional)
+              </label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  name="inputReferralCode"
+                  value={inputReferralCode}
+                  onChange={(e) => setInputReferralCode(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
               </div>
             </div>
 
