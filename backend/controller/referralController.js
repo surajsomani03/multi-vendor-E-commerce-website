@@ -1,69 +1,49 @@
 const ReferralCode = require("../model/referralCode");
 const User = require("../model/user");
 const ErrorHandler = require("../utils/ErrorHandler");
+const express = require("express");
+const router = express.Router();
+const { isAuthenticated } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const { getReferralTree } = require("../utils/ReferralCodeGenerate");
 
-const referralController = {
-  // Verify referral code and get referrer details
-  verifyReferralCode: async (referralCode) => {
-    if (!referralCode) return null;
-
-    const referral = await ReferralCode.findOne({ code: referralCode });
-    if (!referral) return null;
-
-    const referrer = await User.findById(referral.userId);
-    if (!referrer) return null;
-
-    return {
-      referrerId: referrer._id,
-      referrerName: referrer.name,
-      referralCode: referral.code
-    };
-  },
-
-  // Update referral usage with user name
-  updateReferralUsage: async (referralCode, newUserId) => {
+// Get referral tree for a user
+router.get(
+  "/get-referral-tree/:userId",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
     try {
-      const referral = await ReferralCode.findOne({ code: referralCode });
-      if (!referral) return;
+      const tree = await getReferralTree(req.params.userId);
+      res.status(200).json({
+        success: true,
+        tree
+      });
+    } catch (error) {
+      next(error);
+    }
+  })
+);
 
-      // Fetch user details to get the name
-      const user = await User.findById(newUserId);
-      if (!user) {
-        throw new Error("User not found");
+// Get earnings by level
+router.get(
+  "/get-level-earnings/:userId",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const referralCode = await ReferralCode.findOne({ userId: req.params.userId });
+      if (!referralCode) {
+        return next(new ErrorHandler("Referral code not found", 404));
       }
 
-      referral.usageCount += 1;
-      referral.usedBy.push({
-        userId: newUserId,
-        userName: user.name, // Use the user's name from the fetched user
-        usedAt: new Date()
+      res.status(200).json({
+        success: true,
+        levelEarnings: Object.fromEntries(referralCode.levelEarnings),
+        totalEarnings: referralCode.totalEarnings
       });
-
-      await referral.save();
     } catch (error) {
-      console.error("Error updating referral usage:", error);
-      throw error;
+      next(error);
     }
-  },
+  })
+);
 
-  // Get referral statistics
-  getReferralStats: catchAsyncErrors(async (req, res, next) => {
-    const { userId } = req.params;
-
-    const referralCode = await ReferralCode.findOne({ userId });
-
-    if (!referralCode) {
-      return next(new ErrorHandler("No referral code found for this user", 404));
-    }
-
-    res.status(200).json({
-      success: true,
-      referralCode: referralCode.code,
-      usageCount: referralCode.usageCount,
-      usedBy: referralCode.usedBy
-    });
-  }),
-};
-
-module.exports = referralController; 
+module.exports = router; 
