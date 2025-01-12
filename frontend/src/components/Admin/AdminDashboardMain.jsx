@@ -116,7 +116,7 @@ const AdminDashboardMain = () => {
               </tbody>
             </table>
           </div>
-        </div>
+            </div>
 
         {/* Recent Sellers */}
         <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-md p-6">
