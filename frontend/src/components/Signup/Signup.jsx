@@ -1,13 +1,14 @@
 import { React, useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import styles from "../../styles/styles";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { RxAvatar } from "react-icons/rx";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 
 const Singup = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -38,22 +39,27 @@ const Singup = () => {
     newForm.append("gender", gender);
     newForm.append("inputReferralCode", inputReferralCode);
 
-    axios
-      .post(`${server}/user/create-user`, newForm, config)
-      .then((res) => {
-        toast.success(res.data.message);
-        setName("");
-        setEmail("");
-        setPassword("");
-        setPhoneNumber("");
-        setPanCard("");
-        setGender("");
-        setInputReferralCode("");
-        setAvatar();
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+    try {
+      const res = await axios.post(`${server}/user/create-user`, newForm, config);
+      
+      toast.success(res.data.message);
+      
+      setName("");
+      setEmail("");
+      setPassword("");
+      setPhoneNumber("");
+      setPanCard("");
+      setGender("");
+      setInputReferralCode("");
+      setAvatar();
+      
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
   };
 
   return (
