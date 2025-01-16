@@ -14,11 +14,26 @@ const MyTeam = () => {
   useEffect(() => {
     const fetchTeamMembers = async () => {
       try {
+        console.log("User ID:", user._id);
         const { data } = await axios.get(
-          `${server}/user/my-team/${user._id}`,
+          `${server}/referral/get-referral-tree/${user._id}`,
           { withCredentials: true }
         );
-        setTeamMembers(data.team);
+        console.log("Data:", data);
+        
+        // Check if data.tree.levels is an object and flatten it
+        if (data.tree && data.tree.levels) {
+          const allMembers = [];
+          for (const level in data.tree.levels) {
+            data.tree.levels[level].forEach(member => {
+              allMembers.push({ ...member, level });
+            });
+          }
+          setTeamMembers(allMembers);
+        } else {
+          console.error("Expected levels to be an object but got:", data.tree.levels);
+          setTeamMembers([]);
+        }
         setLoading(false);
       } catch (error) {
         toast.error(error.response?.data?.message || "Error fetching team members");
@@ -50,7 +65,7 @@ const MyTeam = () => {
                     toast.success("Referral code copied!");
                   }
                 }}
-                className={`${styles.button} !h-[35px] !w-[100px] !rounded-[5px]`}
+                className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white font-semibold py-2 px-4 rounded-md transition-all duration-300"
               >
                 Copy
               </button>
@@ -83,33 +98,33 @@ const MyTeam = () => {
                 <tr className="border-b dark:border-gray-700">
                   <th className="text-left py-3">Member</th>
                   <th className="text-left py-3">Joined Date</th>
-                  <th className="text-left py-3">Status</th>
+                  <th className="text-left py-3">Level</th>
                 </tr>
               </thead>
               <tbody>
                 {teamMembers.map((member) => (
-                  <tr key={member._id} className="border-b dark:border-gray-700">
+                  <tr key={member.userId} className="border-b dark:border-gray-700">
                     <td className="py-4">
                       <div className="flex items-center space-x-3">
                         <img
-                          src={`${server}/${member.avatar}`}
-                          alt={member.name}
+                          src={`${server}/path/to/default/avatar`}
+                          alt={member.userName}
                           className="w-10 h-10 rounded-full"
                         />
                         <div>
-                          <p className="font-medium dark:text-white">{member.name}</p>
+                          <p className="font-medium dark:text-white">{member.userName}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {member.email}
+                            {member.userId}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="py-4">
-                      {format(new Date(member.createdAt), 'MMM dd, yyyy')}
+                      {format(new Date(member.referredAt), 'MMM dd, yyyy')}
                     </td>
                     <td className="py-4">
-                      <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                        Active
+                      <span className="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                        Level {member.level}
                       </span>
                     </td>
                   </tr>

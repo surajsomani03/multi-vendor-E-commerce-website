@@ -73,7 +73,7 @@ const AdminDashboardMain = () => {
             <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity duration-200" />
           </div>
         ))}
-      </div>
+            </div>
 
       {/* Recent Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -115,7 +115,7 @@ const AdminDashboardMain = () => {
                 ))}
               </tbody>
             </table>
-          </div>
+              </div>
             </div>
 
         {/* Recent Sellers */}
